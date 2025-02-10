@@ -3,6 +3,7 @@ import "./globals.css";
 import Appbar from "@/components/Appbar";
 import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/app/provider";
+import { PostHogProvider } from "./posthog-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Appbar />
-          {children}
+          <PostHogProvider>
+            {children}
+          </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>
