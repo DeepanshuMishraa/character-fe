@@ -6,6 +6,7 @@ import { Input } from "./ui/input"
 import { Search, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { redirect } from "next/navigation"
 
 const Appbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -16,7 +17,9 @@ const Appbar = () => {
         <div className="flex items-center gap-4 sm:gap-10">
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex space-x-4">
-            <Button className="rounded-full font-normal">Sign Up to Chat</Button>
+            <Button onClick={() => {
+              redirect("/api/auth/register")
+            }} className="rounded-full font-normal">Sign Up to Chat</Button>
             <Button className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10" variant={"outline"}>Login</Button>
           </div>
         </div>
