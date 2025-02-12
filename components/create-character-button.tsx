@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
 import { Loader2, Plus } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import axios from "axios"
 
 const characterFormSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -52,20 +53,13 @@ export function CreateCharacterButton() {
 
   async function onSubmit(data: CharacterFormValues) {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/character/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(data),
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/character/create`, data, {
+        withCredentials: true,
       })
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error("Failed to create character")
       }
-
-      // Reset form and close dialog on success
       form.reset()
       setOpen(false)
     } catch (error) {

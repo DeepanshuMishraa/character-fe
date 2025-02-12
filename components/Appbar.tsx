@@ -16,12 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { redirect } from "next/navigation"
+import { redirect, usePathname } from "next/navigation"
 import { CreateCharacterButton } from "./create-character-button"
 
 const Appbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, loading, error, isAuthenticated } = useSession()
+  const pathName = usePathname()
 
   console.log('Appbar render state:', { user, loading, error, isAuthenticated });
 
@@ -124,7 +125,12 @@ const Appbar = () => {
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
             {renderAuthButtons()}
-            {isAuthenticated && <CreateCharacterButton />}
+            {isAuthenticated && (
+              <>
+                <Link href="/dashboard">Dashboard</Link>
+                {pathName && pathName === "/dashboard" && <CreateCharacterButton />}
+              </>
+            )}
           </div>
         </div>
 

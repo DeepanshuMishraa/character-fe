@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Appbar from "@/components/Appbar";
 import { Poppins } from "next/font/google";
-import { ThemeProvider } from "@/app/provider";
-import { PostHogProvider } from "./posthog-provider";
+import { ThemeProvider } from "@/app/_providers/provider";
+import { PostHogProvider } from "./_providers/posthog-provider";
+import { QueryProvider } from "./_providers/query-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,10 +34,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Appbar />
+          <QueryProvider>
+            <Appbar />
           <PostHogProvider>
-            {children}
-          </PostHogProvider>
+              {children}
+            </PostHogProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
