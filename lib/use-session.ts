@@ -11,7 +11,7 @@ export interface User {
 
 // Create axios instance with better defaults
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: '/api',
   withCredentials: true, // Important for cookies
   timeout: 10000,
   headers: {
@@ -70,10 +70,9 @@ export function useSession() {
     async function fetchUser() {
       try {
         console.log('Fetching user session...');
-        console.log('Backend URL:', process.env.NEXT_PUBLIC_BACKEND_URL);
 
         setError(null);
-        const { data } = await api.get<{ user: User }>('/api/auth/me');
+        const { data } = await api.get<{ user: User }>('/auth/me');
 
         if (isMounted) {
           if (data?.user) {

@@ -10,7 +10,7 @@ import { useSession } from '@/lib/use-session';
 import { redirect } from 'next/navigation';
 import axios from 'axios';
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: '/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -32,13 +32,13 @@ export default function Dashboard() {
 
 
   if (!sessionLoading && !isAuthenticated) {
-    redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`);
+    redirect(`/api/auth/login`);
   }
 
   const { data: charactersData, isLoading, error } = useQuery({
     queryKey: ['characters'],
     queryFn: async () => {
-      const response = await api.get('/api/character/bulk');
+      const response = await api.get('/character/bulk');
       return response.data.character as Character[];
     },
     // Only fetch if authenticated

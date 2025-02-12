@@ -53,7 +53,7 @@ const Appbar = () => {
           <Button
             onClick={() => {
               console.log('Redirecting to register...');
-              window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`;
+              window.location.href = `/api/auth/register`;
             }}
             className="rounded-full font-normal"
           >
@@ -62,7 +62,7 @@ const Appbar = () => {
           <Button
             onClick={() => {
               console.log('Redirecting to login...');
-              window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`;
+              window.location.href = `/api/auth/login`;
             }}
             className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
             variant="outline"
@@ -106,7 +106,7 @@ const Appbar = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`;
+              window.location.href = `/api/auth/logout`;
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
@@ -194,7 +194,7 @@ const Appbar = () => {
                     <>
                       <Button
                         onClick={() => {
-                          window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`;
+                          window.location.href = `/api/auth/register`;
                         }}
                         className="rounded-full font-normal w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90 transition-opacity"
                       >
@@ -202,7 +202,7 @@ const Appbar = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`;
+                          window.location.href = `/api/auth/login`;
                         }}
                         className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
                         variant="outline"
@@ -213,7 +213,7 @@ const Appbar = () => {
                   ) : user ? (
                     <Button
                       onClick={() => {
-                        window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`;
+                        window.location.href = `/api/auth/logout`;
                       }}
                       className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
                       variant="outline"

@@ -53,7 +53,7 @@ export function CreateCharacterButton() {
 
   async function onSubmit(data: CharacterFormValues) {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/character/create`, data, {
+      const response = await axios.post(`/api/character/create`, data, {
         withCredentials: true,
       })
 

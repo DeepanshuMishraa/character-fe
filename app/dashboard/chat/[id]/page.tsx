@@ -14,7 +14,7 @@ import axios from 'axios';
 import Link from 'next/link';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: '/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -49,14 +49,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!sessionLoading && !isAuthenticated) {
-      router.push(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`);
+      router.push(`/api/auth/login`);
     }
   }, [sessionLoading, isAuthenticated, router]);
 
   const { data: character, isError: characterError } = useQuery<Character>({
     queryKey: ['character', id],
     queryFn: async () => {
-      const response = await api.get(`/api/character/${id}`);
+      const response = await api.get(`/character/${id}`);
       return response.data.character;
     },
     enabled: isAuthenticated && !!id,
@@ -65,7 +65,7 @@ export default function ChatPage() {
   const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ['messages', id],
     queryFn: async () => {
-      const response = await api.get(`/api/chat/${id}/messages`);
+      const response = await api.get(`/chat/${id}/messages`);
       return response.data.messages;
     },
     enabled: isAuthenticated && !!id,
@@ -98,7 +98,7 @@ export default function ChatPage() {
       setStreamingMessage('');
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/${id}/send`, {
+        const response = await fetch(`/api/chat/${id}/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
