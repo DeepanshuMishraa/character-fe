@@ -61,9 +61,11 @@ export function useSession() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
+    let retryTimeout: NodeJS.Timeout;
 
     async function fetchUser() {
       try {
@@ -76,10 +78,17 @@ export function useSession() {
         if (isMounted) {
           if (data?.user) {
             setUser(data.user);
+            setRetryCount(0); // Reset retry count on success
             console.log('User set:', data.user);
           } else {
             console.warn('No user data in response:', data);
             setUser(null);
+            // If no user data but response is successful, retry a few times
+            if (retryCount < 3) {
+              retryTimeout = setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 1000); // Retry after 1 second
+            }
           }
         }
       } catch (error) {
@@ -99,6 +108,14 @@ export function useSession() {
               const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch user data';
               console.error('Session error:', errorMsg);
               setError(errorMsg);
+              // Retry on network errors or 5xx errors
+              if (!error.response || error.response.status >= 500) {
+                if (retryCount < 3) {
+                  retryTimeout = setTimeout(() => {
+                    setRetryCount(prev => prev + 1);
+                  }, 1000); // Retry after 1 second
+                }
+              }
             }
           } else {
             console.error('Unexpected error:', error);
@@ -117,8 +134,11 @@ export function useSession() {
 
     return () => {
       isMounted = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
     };
-  }, []);
+  }, [retryCount]); // Add retryCount as a dependency
 
   const sessionState = {
     user,
