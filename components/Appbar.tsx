@@ -17,69 +17,114 @@ import {
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { redirect } from "next/navigation"
+import { CreateCharacterButton } from "./create-character-button"
 
 const Appbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, loading, isAuthenticated } = useSession()
+  const { user, loading, error, isAuthenticated } = useSession()
+
+  console.log('Appbar render state:', { user, loading, error, isAuthenticated });
+
+  // Show loading state in a non-intrusive way
+  const renderAuthButtons = () => {
+    console.log('renderAuthButtons called with:', { loading, isAuthenticated, user });
+
+    if (loading) {
+      return (
+        <div className="flex space-x-4 items-center">
+          <div className="h-9 w-24 bg-white/10 animate-pulse rounded-full"></div>
+          <div className="h-9 w-20 bg-white/5 animate-pulse rounded-full"></div>
+        </div>
+      );
+    }
+
+    // If there's an error, we should handle it appropriately
+    if (error) {
+      console.error('Session error in Appbar:', error);
+    }
+
+    // Not loading and not authenticated
+    if (!isAuthenticated || !user) {
+      console.log('Rendering login/signup buttons');
+      return (
+        <>
+          <Button
+            onClick={() => {
+              console.log('Redirecting to register...');
+              redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`);
+            }}
+            className="rounded-full font-normal"
+          >
+            Sign Up to Chat
+          </Button>
+          <Button
+            onClick={() => {
+              console.log('Redirecting to login...');
+              redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`);
+            }}
+            className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
+            variant="outline"
+          >
+            Login
+          </Button>
+        </>
+      );
+    }
+
+    // User is authenticated
+    console.log('Rendering user menu for:', user);
+    return (
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.picture || ''} alt={user.given_name || 'User'} />
+              <AvatarFallback className="bg-white/10 text-white">
+                {user.given_name?.[0]?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium">{user.given_name} {user.family_name}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              console.log('Logging out...');
+              redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`);
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       <div className="flex items-center justify-between p-4 bg-transparent backdrop-blur-sm">
         <div className="flex items-center gap-4 sm:gap-10">
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
-          <div className="hidden sm:flex space-x-4">
-            {!loading && !isAuthenticated ? (
-              <>
-                <Button
-                    onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/register`)}
-                  className="rounded-full font-normal"
-                >
-                  Sign Up to Chat
-                </Button>
-                <Button
-                  onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/login`)}
-                  className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
-                  variant="outline"
-                >
-                  Login
-                </Button>
-              </>
-            ) : isAuthenticated && user ? (
-              <DropdownMenu>  
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.picture || ''} alt={user.given_name || 'User'} />
-                      <AvatarFallback className="bg-white/10 text-white">
-                        {user.given_name?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user.given_name} {user.family_name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/logout`)}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
+          <div className="hidden sm:flex items-center space-x-4">
+            {renderAuthButtons()}
+            {isAuthenticated && <CreateCharacterButton />}
           </div>
         </div>
 
@@ -135,25 +180,30 @@ const Appbar = () => {
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider px-2">Menu</h3>
                 <div className="flex flex-col gap-3">
-                  {!loading && !isAuthenticated ? (
+                  {loading ? (
+                    <div className="space-y-3">
+                      <div className="h-10 bg-white/10 animate-pulse rounded-full"></div>
+                      <div className="h-10 bg-white/5 animate-pulse rounded-full"></div>
+                    </div>
+                  ) : !isAuthenticated ? (
                     <>
                       <Button
-                        onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/register`)}
+                        onClick={() => redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`)}
                         className="rounded-full font-normal w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90 transition-opacity"
                       >
                         Sign Up to Chat
                       </Button>
                       <Button
-                        onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/login`)}
+                        onClick={() => redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`)}
                         className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
                         variant="outline"
                       >
                         Login
                       </Button>
                     </>
-                  ) : isAuthenticated && user ? (
+                  ) : user ? (
                     <Button
-                      onClick={() => redirect(`${process.env.BACKEND_URL}/api/auth/logout`)}
+                      onClick={() => redirect(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`)}
                       className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
                       variant="outline"
                     >
@@ -182,7 +232,7 @@ const Appbar = () => {
         )}
       </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export default Appbar
+export default Appbar;
