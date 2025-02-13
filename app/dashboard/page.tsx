@@ -6,9 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CreateCharacterButton } from '@/components/create-character-button';
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSession } from '@/lib/use-session';
-import { redirect } from 'next/navigation';
 import axios from 'axios';
+import { useSession } from '@/lib/auth-client';
 const api = axios.create({
   baseURL: '/api',
   withCredentials: true,
@@ -28,13 +27,7 @@ interface Character {
 }
 
 export default function Dashboard() {
-  const { user, loading: sessionLoading, isAuthenticated } = useSession();
-
-
-  if (!sessionLoading && !isAuthenticated) {
-    redirect(`/api/auth/login`);
-  }
-
+  const session = useSession();
   const { data: charactersData, isLoading, error } = useQuery({
     queryKey: ['characters'],
     queryFn: async () => {
@@ -42,10 +35,10 @@ export default function Dashboard() {
       return response.data.character as Character[];
     },
     // Only fetch if authenticated
-    enabled: isAuthenticated,
+    enabled: !!session?.data?.user,
   });
 
-  if (sessionLoading) {
+  if (session?.isPending) {
     return (
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-8">
@@ -98,9 +91,15 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+      ) : !charactersData || charactersData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <p className="text-xl text-muted-foreground mb-4">No characters found</p>
+          <p className="text-sm text-muted-foreground mb-6">Create your first character to get started</p>
+          <CreateCharacterButton />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {charactersData?.map((character) => (
+          {charactersData.map((character) => (
             <Card key={character.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center space-x-4">
@@ -128,14 +127,6 @@ export default function Dashboard() {
               </CardFooter>
             </Card>
           ))}
-
-          {charactersData?.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center min-h-[400px] text-center">
-              <p className="text-xl text-muted-foreground mb-4">No characters found</p>
-              <p className="text-sm text-muted-foreground mb-6">Create your first character to get started</p>
-              <CreateCharacterButton />
-            </div>
-          )}
         </div>
       )}
     </div>

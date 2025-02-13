@@ -2,11 +2,8 @@
 
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Search, Menu, X, User, Settings, LogOut } from "lucide-react"
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useSession } from "@/lib/use-session"
+import { signIn, useSession } from "@/lib/auth-client"
+import { User, LogOut, Search, Menu, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,73 +13,47 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { useRouter, usePathname } from "next/navigation"
+import { Input } from "./ui/input"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { CreateCharacterButton } from "./create-character-button"
 
 const Appbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, loading, error, isAuthenticated } = useSession()
-  const pathName = usePathname()
-  const router = useRouter()
+  const { data: session } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  console.log('Appbar render state:', { user, loading, error, isAuthenticated });
-
-  // Show loading state in a non-intrusive way
-  const renderAuthButtons = () => {
-    console.log('renderAuthButtons called with:', { loading, isAuthenticated, user });
-
-    if (loading) {
-      return (
-        <div className="flex space-x-4 items-center">
-          <div className="h-9 w-24 bg-white/10 animate-pulse rounded-full"></div>
-          <div className="h-9 w-20 bg-white/5 animate-pulse rounded-full"></div>
-        </div>
-      );
-    }
-
-    // If there's an error, we should handle it appropriately
-    if (error) {
-      console.error('Session error in Appbar:', error);
-    }
-
-    // Not loading and not authenticated
-    if (!isAuthenticated || !user) {
-      console.log('Rendering login/signup buttons');
-      return (
-        <>
-          <Button
-            onClick={() => {
-              console.log('Redirecting to register...');
-              window.location.href = `/api/auth/register`;
-            }}
-            className="rounded-full font-normal"
-          >
-            Sign Up to Chat
-          </Button>
-          <Button
-            onClick={() => {
-              console.log('Redirecting to login...');
-              window.location.href = `/api/auth/login`;
-            }}
-            className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
-            variant="outline"
-          >
-            Login
-          </Button>
-        </>
-      );
-    }
-
-    // User is authenticated
-    console.log('Rendering user menu for:', user);
-    return (
+  const renderAuthButtons = () => (
+    !session ? (
+      <>
+        <Button
+          onClick={() => {
+            window.location.href = `/api/auth/register`;
+          }}
+          className="rounded-full font-normal"
+        >
+          Sign Up to Chat
+        </Button>
+        <Button
+          onClick={async () => {
+            signIn.social({
+              provider: "google",
+              callbackURL: `${process.env.NEXT_PUBLIC_URL}/dashboard`
+            })
+          }}
+          className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
+          variant="outline"
+        >
+          Login
+        </Button>
+      </>
+    ) : (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user.picture || ''} alt={user.given_name || 'User'} />
+              <AvatarImage src={session.user?.image || ''} alt={session.user?.name || 'User'} />
               <AvatarFallback className="bg-white/10 text-white">
-                {user.given_name?.[0]?.toUpperCase() || 'U'}
+                {session.user?.name?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -90,18 +61,14 @@ const Appbar = () => {
         <DropdownMenuContent className="w-56" align="end">
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium">{user.given_name} {user.family_name}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+              <p className="text-sm font-medium">{session.user?.name}</p>
+              <p className="text-xs text-muted-foreground">{session.user?.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -114,8 +81,8 @@ const Appbar = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    );
-  };
+    )
+  );
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
@@ -124,12 +91,7 @@ const Appbar = () => {
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
             {renderAuthButtons()}
-            {isAuthenticated && (
-              <>
-                <Link href="/dashboard">Dashboard</Link>
-                {pathName && pathName === "/dashboard" && <CreateCharacterButton />}
-              </>
-            )}
+            <CreateCharacterButton />
           </div>
         </div>
 
@@ -140,7 +102,7 @@ const Appbar = () => {
             </div>
             <Input
               placeholder="Search"
-              className="w-[300px] lg:w-[400px] rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
+              className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
             />
           </div>
           <Button
@@ -165,78 +127,21 @@ const Appbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="sm:hidden fixed inset-0 top-[72px] bg-[#111111]"
+            className="sm:hidden fixed inset-0 top-[72px] bg-[#111111] z-50"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
-            <div className="absolute w-[500px] h-[500px] bg-purple-500/30 rounded-full blur-[100px] -top-[200px] -right-[200px]" />
-            <div className="absolute w-[500px] h-[500px] bg-blue-500/30 rounded-full blur-[100px] -bottom-[200px] -left-[200px]" />
-
             <div className="relative h-full p-6 space-y-6 overflow-auto">
               <div className="relative flex items-center">
                 <div className="absolute left-3">
                   <Search className="w-4 h-4 text-white/60" />
                 </div>
                 <Input
-                  placeholder="Search characters..."
+                  placeholder="Search"
                   className="w-full rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
                 />
               </div>
 
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider px-2">Menu</h3>
-                <div className="flex flex-col gap-3">
-                  {loading ? (
-                    <div className="space-y-3">
-                      <div className="h-10 bg-white/10 animate-pulse rounded-full"></div>
-                      <div className="h-10 bg-white/5 animate-pulse rounded-full"></div>
-                    </div>
-                  ) : !isAuthenticated ? (
-                    <>
-                      <Button
-                        onClick={() => {
-                          window.location.href = `/api/auth/register`;
-                        }}
-                        className="rounded-full font-normal w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90 transition-opacity"
-                      >
-                        Sign Up to Chat
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          window.location.href = `/api/auth/login`;
-                        }}
-                        className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
-                        variant="outline"
-                      >
-                        Login
-                      </Button>
-                    </>
-                  ) : user ? (
-                    <Button
-                      onClick={() => {
-                        window.location.href = `/api/auth/logout`;
-                      }}
-                      className="rounded-full font-normal w-full bg-transparent text-white border-white/20 hover:bg-white/10"
-                      variant="outline"
-                    >
-                      Logout
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-white/40 uppercase tracking-wider px-2">Quick Links</h3>
-                <div className="flex flex-col gap-2">
-                  <button className="text-left px-2 py-2 text-white/70 hover:text-white transition-colors rounded-lg hover:bg-white/5">
-                    Popular Characters
-                  </button>
-                  <button className="text-left px-2 py-2 text-white/70 hover:text-white transition-colors rounded-lg hover:bg-white/5">
-                    Create Character
-                  </button>
-                  <button className="text-left px-2 py-2 text-white/70 hover:text-white transition-colors rounded-lg hover:bg-white/5">
-                    Help & Support
-                  </button>
-                </div>
+              <div className="space-y-4">
+                {renderAuthButtons()}
               </div>
             </div>
           </motion.div>

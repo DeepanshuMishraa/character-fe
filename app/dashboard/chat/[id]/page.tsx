@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useSession } from '@/lib/use-session';
+import { useSession } from '@/lib/auth-client';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
@@ -39,7 +39,7 @@ interface Character {
 export default function ChatPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { user, isAuthenticated, loading: sessionLoading } = useSession();
+  const session = useSession();
   const [message, setMessage] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -48,10 +48,10 @@ export default function ChatPage() {
   const [isStreaming, setIsStreaming] = useState(false);
 
   useEffect(() => {
-    if (!sessionLoading && !isAuthenticated) {
+    if (!session?.isPending && !session?.data?.user) {
       router.push(`/api/auth/login`);
     }
-  }, [sessionLoading, isAuthenticated, router]);
+  }, [session?.isPending, session?.data?.user, router]);
 
   const { data: character, isError: characterError } = useQuery<Character>({
     queryKey: ['character', id],
@@ -59,7 +59,7 @@ export default function ChatPage() {
       const response = await api.get(`/character/${id}`);
       return response.data.character;
     },
-    enabled: isAuthenticated && !!id,
+    enabled: !!session?.data?.user && !!id,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
@@ -68,7 +68,7 @@ export default function ChatPage() {
       const response = await api.get(`/chat/${id}/messages`);
       return response.data.messages;
     },
-    enabled: isAuthenticated && !!id,
+    enabled: !!session?.data?.user && !!id,
   });
 
   const sendMessage = useMutation({
@@ -194,7 +194,7 @@ export default function ChatPage() {
     );
   }
 
-  if (sessionLoading) {
+  if (session?.isPending) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -277,8 +277,8 @@ export default function ChatPage() {
                   </div>
                   {msg.role === 'user' && (
                     <Avatar className="h-8 w-8 mb-1">
-                      <AvatarImage src={user?.picture} alt={user?.given_name || 'User'} />
-                      <AvatarFallback>{user?.given_name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                      <AvatarImage src={session.data?.user?.image} alt={session.data?.user?.name || 'User'} />
+                      <AvatarFallback>{session.data?.user?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                   )}
                 </div>
