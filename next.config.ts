@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
       // }
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*'
+        destination: process.env.NEXT_BACKEND_URL as string
       }
     ];
   }
