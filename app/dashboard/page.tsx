@@ -73,7 +73,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto mt-20 p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Your Characters</h1>
+        <h1 className="text-4xl font-bold">All Characters</h1>
         <CreateCharacterButton />
       </div>
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { signIn, useSession } from "@/lib/auth-client"
+import { signIn, signOut, signUp, useSession } from "@/lib/auth-client"
 import { User, LogOut, Search, Menu, X } from "lucide-react"
 import {
   DropdownMenu,
@@ -25,14 +25,6 @@ const Appbar = () => {
   const renderAuthButtons = () => (
     !session ? (
       <>
-        <Button
-          onClick={() => {
-            window.location.href = `/api/auth/register`;
-          }}
-          className="rounded-full font-normal"
-        >
-          Sign Up to Chat
-        </Button>
         <Button
           onClick={async () => {
             signIn.social({
@@ -73,7 +65,7 @@ const Appbar = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              window.location.href = `/api/auth/logout`;
+              signOut()
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
