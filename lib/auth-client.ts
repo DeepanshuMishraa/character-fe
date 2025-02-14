@@ -1,9 +1,7 @@
 import { createAuthClient } from "better-auth/react"
 
-// In production, the API URL should be the same as the frontend URL + /api
-const baseURL = process.env.NEXT_PUBLIC_URL as string
 export const authClient = createAuthClient({
-  baseURL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
   withCredentials: true
 })
 
