@@ -29,7 +29,6 @@ const Appbar = () => {
           onClick={async () => {
             signIn.social({
               provider: "google",
-              callbackURL: `${process.env.NEXT_URL}/dashboard`
             })
           }}
           className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
