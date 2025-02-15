@@ -28,7 +28,8 @@ const Appbar = () => {
         <Button
           onClick={async () => {
             signIn.social({
-              provider: "google",
+              provider: "google"
+
             })
           }}
           className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"

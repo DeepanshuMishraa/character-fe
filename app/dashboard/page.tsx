@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import axios from 'axios';
 import { useSession } from '@/lib/auth-client';
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

@@ -14,7 +14,7 @@ import axios from 'axios';
 import Link from 'next/link';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
