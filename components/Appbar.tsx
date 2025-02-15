@@ -28,7 +28,8 @@ const Appbar = () => {
         <Button
           onClick={async () => {
             signIn.social({
-              provider: "google"
+              provider: "google",
+              callbackURL: `${process.env.NEXT_PUBLIC_URL}/dashboard`
 
             })
           }}
