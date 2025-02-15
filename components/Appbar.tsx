@@ -29,7 +29,7 @@ const Appbar = () => {
           onClick={async () => {
             signIn.social({
               provider: "google",
-              callbackURL: "https://holo-ai-one.vercel.app/dashboard"
+              callbackURL: process.env.NEXT_URL as string
             })
           }}
           className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
@@ -83,6 +83,7 @@ const Appbar = () => {
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
             {renderAuthButtons()}
+            {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
             <CreateCharacterButton />
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react"
 
 export const authClient = createAuthClient({
-  baseURL: "https://holo-ai-one.vercel.app",
+  baseURL: process.env.NEXT_URL ,
   withCredentials: true
 })
 
