@@ -10,7 +10,13 @@ export const authClient = createAuthClient({
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  cookieOptions:{
+    httpOnly:true,
+    path:"/",
+    maxAge:30 * 24 * 60 * 60 * 1000,
+  },
+  secret:process.env.BETTER_AUTH_SECRET as string,
 })
 
 export const { signIn, signOut, signUp, useSession } = authClient;
