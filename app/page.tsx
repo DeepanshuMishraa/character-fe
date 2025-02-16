@@ -1,4 +1,5 @@
 'use client'
+
 import Hero from "@/components/Hero";
 import Center from "@/components/center";
 import { useEffect } from "react";
