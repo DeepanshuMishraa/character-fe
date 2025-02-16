@@ -49,7 +49,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!session?.isPending && !session?.data?.user) {
-      router.push(`/api/auth/login`);
+      router.push(`${process.env.NEXT_PUBLIC_URL}`);
     }
   }, [session?.isPending, session?.data?.user, router]);
 
@@ -98,7 +98,7 @@ export default function ChatPage() {
       setStreamingMessage('');
 
       try {
-        const response = await fetch(`/api/chat/${id}/send`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/${id}/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
