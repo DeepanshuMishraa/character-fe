@@ -17,10 +17,12 @@ import { Input } from "./ui/input"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CreateCharacterButton } from "./create-character-button"
+import { useRouter } from "next/navigation"
 
 const Appbar = () => {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
   const renderAuthButtons = () => (
     !session ? (
@@ -66,7 +68,13 @@ const Appbar = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              signOut()
+              signOut({
+                fetchOptions:{
+                  onSuccess:()=>{
+                    router.push("/");
+                  }
+                }
+              })
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
