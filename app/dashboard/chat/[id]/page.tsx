@@ -35,7 +35,6 @@ interface Character {
   personality: string;
 }
 
-// Memoized Message Component for better performance
 const ChatMessage = React.memo(({
   message,
   character,
@@ -43,28 +42,23 @@ const ChatMessage = React.memo(({
 }: {
   message: Message;
   character?: Character;
-  userAvatar?: string;
+  userAvatar?: string | null;
 }) => (
-  <div
-    className={`flex items-start gap-2 fade-in ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-  >
+  <div className="flex items-start gap-3 px-2 animate-in fade-in slide-in-from-bottom-2">
     {message.role === 'assistant' ? (
-      <Avatar className="h-8 w-8 ring-2 ring-border/40">
+      <Avatar className="h-8 w-8 shrink-0 select-none ring-2 ring-border/40">
         <AvatarImage src={character?.avatar} alt={character?.name} />
-        <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+        <AvatarFallback>{character?.name?.[0]?.toUpperCase()}</AvatarFallback>
       </Avatar>
     ) : (
-      <Avatar className="h-8 w-8 ring-2 ring-border/40">
-        <AvatarImage src={userAvatar} alt="User" />
-        <AvatarFallback>U</AvatarFallback>
-      </Avatar>
+      <div className="ml-auto" />
     )}
     <div
       className={`
-        px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-[75%] break-words
+        px-4 py-2.5 rounded-2xl max-w-[80%] break-words
         ${message.role === 'user'
-          ? 'bg-primary/90 text-primary-foreground rounded-tr-sm'
-          : 'bg-card rounded-tl-sm shadow-sm'
+          ? 'ml-auto bg-primary text-primary-foreground'
+          : 'bg-muted/50'
         }
         ${message.isStreaming ? 'animate-pulse' : ''}
       `}
@@ -73,6 +67,14 @@ const ChatMessage = React.memo(({
         {message.content}
       </p>
     </div>
+    {message.role === 'user' ? (
+      <Avatar className="h-8 w-8 shrink-0 select-none ring-2 ring-border/40">
+        <AvatarImage src={userAvatar || undefined} alt="User" />
+        <AvatarFallback>U</AvatarFallback>
+      </Avatar>
+    ) : (
+      <div className="mr-auto" />
+    )}
   </div>
 ));
 
@@ -237,14 +239,14 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-background to-background/95">
+    <div className="flex flex-col h-[100dvh] bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
-        <div className="container max-w-4xl mx-auto">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+        <div className="container max-w-3xl mx-auto">
           <div className="flex items-center h-16 px-4">
             <Link
               href="/dashboard"
-              className="mr-4 rounded-full hover:bg-accent transition-colors"
+              className="mr-4 rounded-lg hover:bg-muted transition-colors"
             >
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <ArrowLeft className="h-4 w-4" />
@@ -252,13 +254,13 @@ export default function ChatPage() {
             </Link>
             <Avatar className="h-8 w-8 ring-2 ring-border/40">
               <AvatarImage src={character?.avatar} alt={character?.name} />
-              <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{character?.name?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="ml-3 overflow-hidden">
-              <h2 className="text-sm font-medium tracking-tight truncate">
+              <h2 className="text-sm font-medium leading-none">
                 {character?.name}
               </h2>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate mt-1">
                 {character?.personality}
               </p>
             </div>
@@ -267,60 +269,58 @@ export default function ChatPage() {
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-hidden pt-16 pb-20">
-        <div className="container max-w-4xl h-full mx-auto px-4">
-          <div className="h-full overflow-y-auto py-4 space-y-4">
+      <main className="flex-1 overflow-y-auto pt-16 pb-[76px] scroll-smooth">
+        <div className="container max-w-3xl mx-auto">
+          <div className="flex flex-col gap-4 p-4">
             {messagesLoading ? (
               <div className="flex justify-center pt-4">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-4 space-y-4 animate-fade-in-up">
-                <div className="p-4 rounded-full bg-accent/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center px-4 space-y-4">
+                <div className="p-4 rounded-full bg-muted">
                   <Avatar className="h-12 w-12 ring-2 ring-border/40">
                     <AvatarImage src={character?.avatar} alt={character?.name} />
                     <AvatarFallback>
-                      {character?.name?.slice(0, 2).toUpperCase()}
+                      {character?.name?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="space-y-2 max-w-sm">
-                  <h3 className="font-medium text-xl tracking-tight">
+                  <h3 className="font-medium text-xl">
                     Chat with {character?.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground">
                     Start a conversation with {character?.name}. They will respond based on
                     their unique personality and backstory.
                   </p>
                 </div>
               </div>
             ) : (
-              <>
-                {messages.map((msg) => (
-                  <ChatMessage
-                    key={msg.id}
-                    message={msg}
-                    character={character}
-                    userAvatar={session.data?.user?.image}
-                  />
-                ))}
-                <div ref={messagesEndRef} />
-              </>
+              messages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg}
+                  character={character}
+                  userAvatar={session.data?.user?.image}
+                />
+              ))
             )}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </main>
 
       {/* Input */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t">
-        <div className="container max-w-4xl mx-auto px-4 py-3">
-          <form onSubmit={handleSend} className="flex gap-2 items-center">
+      <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t">
+        <div className="container max-w-3xl mx-auto p-4">
+          <form onSubmit={handleSend} className="flex gap-2">
             <Input
               ref={inputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={`Message ${character?.name || ''}...`}
-              className="flex-1 bg-card/50 border-accent"
+              className="flex-1"
               disabled={sendMessage.isPending}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -333,8 +333,9 @@ export default function ChatPage() {
             />
             <Button
               type="submit"
+              size="icon"
               disabled={sendMessage.isPending || !message.trim()}
-              className="h-10 px-4 bg-primary/90 hover:bg-primary transition-colors"
+              className="h-10 w-10"
             >
               {sendMessage.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
