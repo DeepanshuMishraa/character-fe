@@ -26,7 +26,7 @@ interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
-  conversationId: string;
+  isStreaming?: boolean;
 }
 
 interface Character {
@@ -40,10 +40,7 @@ export default function ChatPage() {
   const { id } = useParams();
   const router = useRouter();
   const session = useSession();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -65,7 +62,7 @@ export default function ChatPage() {
     enabled: !!session?.data?.user && !!id,
   });
 
-  const { data: messagesData = [], isLoading: messagesLoading } = useQuery<Message[]>({
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ['messages', id],
     queryFn: async () => {
       const response = await api.get(`/chat/${id}/messages`);
@@ -74,35 +71,12 @@ export default function ChatPage() {
     enabled: !!session?.data?.user && !!id,
   });
 
-  useEffect(() => {
-    // Load initial messages
-    const loadMessages = async () => {
-      try {
-        const response = await api.get(`/chat/${id}/messages`);
-        setMessages(response.data.messages);
-        scrollToBottom();
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-      }
-    };
-    loadMessages();
-  }, [id]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
       const userMessage: Message = {
         id: Date.now().toString(),
         content,
-        role: 'user',
-        conversationId: id
+        role: 'user'
       };
 
       queryClient.setQueryData(['messages', id], (oldMessages: Message[] = []) => {
@@ -116,7 +90,6 @@ export default function ChatPage() {
           id: streamingId,
           content: '',
           role: 'assistant',
-          conversationId: id,
           isStreaming: true
         }];
       });
@@ -171,7 +144,6 @@ export default function ChatPage() {
                 id: Date.now().toString(),
                 content: accumulatedMessage,
                 role: 'assistant',
-                conversationId: id,
                 isStreaming: false
               }
               : msg
@@ -190,7 +162,7 @@ export default function ChatPage() {
       }
     },
     onSuccess: () => {
-      setInput('');
+      setMessage('');
     },
   });
 
@@ -206,8 +178,8 @@ export default function ChatPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading || sendMessage.isPending) return;
-    sendMessage.mutate(input.trim());
+    if (!message.trim() || sendMessage.isPending) return;
+    sendMessage.mutate(message);
   };
 
   if (characterError) {
@@ -312,7 +284,6 @@ export default function ChatPage() {
                 </div>
               ))
             )}
-            <div ref={messagesEndRef} />
           </div>
         </div>
       </main>
@@ -320,29 +291,29 @@ export default function ChatPage() {
         <div className="container mx-auto px-4 py-3">
           <form onSubmit={handleSend} className="flex gap-2 items-center">
             <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your message..."
               className="flex-1"
-              disabled={loading || sendMessage.isPending}
+              disabled={sendMessage.isPending}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  if (input.trim() && !loading && !sendMessage.isPending) {
-                    sendMessage.mutate(input.trim());
+                  if (message.trim() && !sendMessage.isPending) {
+                    sendMessage.mutate(message);
                   }
                 }
               }}
             />
             <Button
               type="submit"
-              disabled={loading || !input.trim() || sendMessage.isPending}
+              disabled={sendMessage.isPending || !message.trim()}
               className="h-10 px-4"
             >
-              {loading ? (
+              {sendMessage.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                sendMessage.isPending ? 'Sending...' : 'Send'
+                'Send'
               )}
             </Button>
           </form>

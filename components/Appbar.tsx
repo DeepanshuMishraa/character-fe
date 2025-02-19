@@ -17,30 +17,17 @@ import { Input } from "./ui/input"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CreateCharacterButton } from "./create-character-button"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 const Appbar = () => {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const pathName = usePathname()
 
   const renderAuthButtons = () => (
     !session ? (
-      <>
-        <Button
-          onClick={async () => {
-            signIn.social({
-              provider: "google",
-              callbackURL: `${process.env.NEXT_PUBLIC_URL}/dashboard`
-
-            })
-          }}
-          className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
-          variant="outline"
-        >
-          Login
-        </Button>
-      </>
+      <></>
     ) : (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -69,8 +56,8 @@ const Appbar = () => {
           <DropdownMenuItem
             onClick={() => {
               signOut({
-                fetchOptions:{
-                  onSuccess:()=>{
+                fetchOptions: {
+                  onSuccess: () => {
                     router.push("/");
                   }
                 }
@@ -91,9 +78,8 @@ const Appbar = () => {
         <div className="flex items-center gap-4 sm:gap-10">
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
-            {renderAuthButtons()}
             {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
-            <CreateCharacterButton />
+            {pathName === "/dashboard" && <CreateCharacterButton />}
           </div>
         </div>
 
@@ -107,6 +93,18 @@ const Appbar = () => {
               className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
             />
           </div>
+          {!session && (
+            <Button
+              onClick={async () => {
+                router.push("/login");
+              }}
+              className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
+              variant="outline"
+            >
+              Login
+            </Button>
+          )}
+          {renderAuthButtons()}
           <Button
             variant="ghost"
             size="icon"
@@ -143,7 +141,7 @@ const Appbar = () => {
               </div>
 
               <div className="space-y-4">
-                {renderAuthButtons()}
+                {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
               </div>
             </div>
           </motion.div>
