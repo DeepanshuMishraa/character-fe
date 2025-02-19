@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from '@/lib/auth-client';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, SendHorizontal } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
 
@@ -36,16 +35,65 @@ interface Character {
   personality: string;
 }
 
+// Memoized Message Component for better performance
+const ChatMessage = React.memo(({
+  message,
+  character,
+  userAvatar
+}: {
+  message: Message;
+  character?: Character;
+  userAvatar?: string;
+}) => (
+  <div
+    className={`flex items-start gap-2 fade-in ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+  >
+    {message.role === 'assistant' ? (
+      <Avatar className="h-8 w-8 ring-2 ring-border/40">
+        <AvatarImage src={character?.avatar} alt={character?.name} />
+        <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+      </Avatar>
+    ) : (
+      <Avatar className="h-8 w-8 ring-2 ring-border/40">
+        <AvatarImage src={userAvatar} alt="User" />
+        <AvatarFallback>U</AvatarFallback>
+      </Avatar>
+    )}
+    <div
+      className={`
+        px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-[75%] break-words
+        ${message.role === 'user'
+          ? 'bg-primary/90 text-primary-foreground rounded-tr-sm'
+          : 'bg-card rounded-tl-sm shadow-sm'
+        }
+        ${message.isStreaming ? 'animate-pulse' : ''}
+      `}
+    >
+      <p className="text-sm whitespace-pre-wrap leading-relaxed">
+        {message.content}
+      </p>
+    </div>
+  </div>
+));
+
+ChatMessage.displayName = 'ChatMessage';
+
 export default function ChatPage() {
   const { id } = useParams();
   const router = useRouter();
   const session = useSession();
   const [message, setMessage] = useState('');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
-  const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
+
+  // Optimized scrolling function
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
 
   useEffect(() => {
     if (!session?.isPending && !session?.data?.user) {
@@ -69,6 +117,7 @@ export default function ChatPage() {
       return response.data.messages;
     },
     enabled: !!session?.data?.user && !!id,
+    staleTime: 1000, // Prevent unnecessary refetches
   });
 
   const sendMessage = useMutation({
@@ -83,7 +132,6 @@ export default function ChatPage() {
         return [...oldMessages, userMessage];
       });
 
-      // Create a placeholder for the assistant's streaming message
       const streamingId = Date.now().toString() + '-streaming';
       queryClient.setQueryData(['messages', id], (oldMessages: Message[] = []) => {
         return [...oldMessages, {
@@ -95,14 +143,11 @@ export default function ChatPage() {
       });
 
       setIsStreaming(true);
-      setStreamingMessage('');
 
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/${id}/send`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content }),
           credentials: 'include'
         });
@@ -119,11 +164,7 @@ export default function ChatPage() {
           const { done, value } = await reader.read();
           if (done) break;
 
-          // Process the chunk immediately
-          const chunk = decoder.decode(value, { stream: true });
-          accumulatedMessage += chunk;
-
-          // Update the streaming message immediately
+          accumulatedMessage += decoder.decode(value, { stream: true });
           queryClient.setQueryData(['messages', id], (oldMessages: Message[] = []) => {
             return oldMessages.map(msg =>
               msg.id === streamingId
@@ -131,10 +172,7 @@ export default function ChatPage() {
                 : msg
             );
           });
-
-          if (scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-          }
+          scrollToBottom();
         }
 
         queryClient.setQueryData(['messages', id], (oldMessages: Message[] = []) => {
@@ -149,32 +187,24 @@ export default function ChatPage() {
               : msg
           );
         });
-
       } catch (error) {
         console.error('Error:', error);
-        // Remove the streaming message on error
         queryClient.setQueryData(['messages', id], (oldMessages: Message[] = []) => {
           return oldMessages.filter(msg => msg.id !== streamingId);
         });
       } finally {
         setIsStreaming(false);
-        setStreamingMessage('');
       }
     },
     onSuccess: () => {
       setMessage('');
+      inputRef.current?.focus();
     },
   });
 
   useEffect(() => {
-    if (scrollAreaRef.current && (isFirstLoad || sendMessage.isSuccess)) {
-      const scrollArea = scrollAreaRef.current;
-      setTimeout(() => {
-        scrollArea.scrollTop = scrollArea.scrollHeight;
-      }, 100);
-      setIsFirstLoad(false);
-    }
-  }, [messages, isFirstLoad, sendMessage.isSuccess]);
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,11 +214,15 @@ export default function ChatPage() {
 
   if (characterError) {
     return (
-      <div className="container mx-auto p-4">
-        <Card className="p-8 text-center">
-          <h2 className="text-xl font-semibold text-destructive mb-2">Character not found</h2>
-          <p className="text-muted-foreground mb-4">This character doesn't exist or you don't have access to it.</p>
-          <Button onClick={() => router.push('/dashboard')}>Return to Dashboard</Button>
+      <div className="container max-w-2xl mx-auto px-4 py-12">
+        <Card className="p-8 text-center space-y-4 bg-card/50 backdrop-blur-sm">
+          <h2 className="text-xl font-semibold text-destructive">Character not found</h2>
+          <p className="text-muted-foreground">
+            This character doesn't exist or you don't have access to it.
+          </p>
+          <Button onClick={() => router.push('/dashboard')}>
+            Return to Dashboard
+          </Button>
         </Card>
       </div>
     );
@@ -203,98 +237,90 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh]">
-      {/* Chat Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-        <div className="container mx-auto">
+    <div className="flex flex-col h-[100dvh] bg-gradient-to-b from-background to-background/95">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
+        <div className="container max-w-4xl mx-auto">
           <div className="flex items-center h-16 px-4">
-            <Link href="/dashboard" className="mr-4 hover:opacity-70 transition">
+            <Link
+              href="/dashboard"
+              className="mr-4 rounded-full hover:bg-accent transition-colors"
+            >
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 ring-2 ring-border/40">
               <AvatarImage src={character?.avatar} alt={character?.name} />
               <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="ml-3 overflow-hidden">
-              <h2 className="text-sm font-semibold truncate">{character?.name}</h2>
-              <p className="text-xs text-muted-foreground truncate">{character?.personality}</p>
+              <h2 className="text-sm font-medium tracking-tight truncate">
+                {character?.name}
+              </h2>
+              <p className="text-xs text-muted-foreground truncate">
+                {character?.personality}
+              </p>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Messages Area */}
+      {/* Messages */}
       <main className="flex-1 overflow-hidden pt-16 pb-20">
-        <div className="container h-full mx-auto px-4">
-          <div
-            ref={scrollAreaRef}
-            className="h-full overflow-y-auto py-4 space-y-4"
-          >
+        <div className="container max-w-4xl h-full mx-auto px-4">
+          <div className="h-full overflow-y-auto py-4 space-y-4">
             {messagesLoading ? (
               <div className="flex justify-center pt-4">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-4 space-y-4">
-                <div className="p-4 rounded-full bg-muted">
-                  <Avatar className="h-12 w-12">
+              <div className="flex flex-col items-center justify-center h-full text-center px-4 space-y-4 animate-fade-in-up">
+                <div className="p-4 rounded-full bg-accent/50 backdrop-blur-sm">
+                  <Avatar className="h-12 w-12 ring-2 ring-border/40">
                     <AvatarImage src={character?.avatar} alt={character?.name} />
-                    <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {character?.name?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-xl">Chat with {character?.name}</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm">
-                    Start a conversation with {character?.name}. They will respond based on their unique personality.
+                <div className="space-y-2 max-w-sm">
+                  <h3 className="font-medium text-xl tracking-tight">
+                    Chat with {character?.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Start a conversation with {character?.name}. They will respond based on
+                    their unique personality and backstory.
                   </p>
                 </div>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <Avatar className="h-8 w-8 mb-1">
-                      <AvatarImage src={character?.avatar} alt={character?.name} />
-                      <AvatarFallback>{character?.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={`
-                      px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-[75%] break-words
-                      ${msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-sm'
-                        : 'bg-muted rounded-bl-sm'
-                      }
-                      ${msg.isStreaming ? 'animate-pulse' : ''}
-                    `}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  </div>
-                  {msg.role === 'user' && (
-                    <Avatar className="h-8 w-8 mb-1">
-                      <AvatarImage src={session.data?.user?.image} alt={session.data?.user?.name || 'User'} />
-                      <AvatarFallback>{session.data?.user?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))
+              <>
+                {messages.map((msg) => (
+                  <ChatMessage
+                    key={msg.id}
+                    message={msg}
+                    character={character}
+                    userAvatar={session.data?.user?.image}
+                  />
+                ))}
+                <div ref={messagesEndRef} />
+              </>
             )}
           </div>
         </div>
       </main>
-      <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t">
-        <div className="container mx-auto px-4 py-3">
+
+      {/* Input */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t">
+        <div className="container max-w-4xl mx-auto px-4 py-3">
           <form onSubmit={handleSend} className="flex gap-2 items-center">
             <Input
+              ref={inputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1"
+              placeholder={`Message ${character?.name || ''}...`}
+              className="flex-1 bg-card/50 border-accent"
               disabled={sendMessage.isPending}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -308,12 +334,12 @@ export default function ChatPage() {
             <Button
               type="submit"
               disabled={sendMessage.isPending || !message.trim()}
-              className="h-10 px-4"
+              className="h-10 px-4 bg-primary/90 hover:bg-primary transition-colors"
             >
               {sendMessage.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Send'
+                <SendHorizontal className="h-4 w-4" />
               )}
             </Button>
           </form>
@@ -321,4 +347,4 @@ export default function ChatPage() {
       </footer>
     </div>
   );
-} 
+}

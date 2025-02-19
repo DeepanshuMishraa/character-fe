@@ -23,7 +23,7 @@ const Appbar = () => {
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
-  const pathName = usePathname()
+
 
   const renderAuthButtons = () => (
     !session ? (
@@ -79,7 +79,7 @@ const Appbar = () => {
           <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
             {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
-            {pathName === "/dashboard" && <CreateCharacterButton />}
+          
           </div>
         </div>
 

@@ -1,5 +1,3 @@
-"use client"
-
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -70,34 +68,38 @@ export function CreateCharacterButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="gap-2">
+        <Button variant="secondary" className="gap-2 ">
           <Plus className="h-4 w-4" />
           Create Character
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[500px] p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
-          <DialogTitle>Create New Character</DialogTitle>
-          <DialogDescription>
-            Create a new AI character to chat with.
+      <DialogContent className="sm:max-w-[600px] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 space-y-2 border-b bg-card">
+          <DialogTitle className="text-xl font-semibold tracking-tight">Create New Character</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Design your AI companion's personality and backstory
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[80vh] px-6 py-4">
+        <ScrollArea className="max-h-[calc(100vh-220px)] px-6 py-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel className="text-sm font-medium">Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter character name" {...field} />
+                      <Input
+                        placeholder="Enter character name"
+                        {...field}
+                        className="h-10 px-3 py-2"
+                      />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      The name of your AI character.
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Choose a memorable name for your AI character
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -106,18 +108,18 @@ export function CreateCharacterButton() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel className="text-sm font-medium">Description</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Brief description of your character"
-                        className="resize-none h-20"
+                        className="min-h-[80px] resize-none px-3 py-2"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      A short description of your character's appearance and basic traits.
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Describe your character's key features and traits
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -126,14 +128,18 @@ export function CreateCharacterButton() {
                 name="avatar"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Avatar URL</FormLabel>
+                    <FormLabel className="text-sm font-medium">Avatar URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter avatar image URL" {...field} />
+                      <Input
+                        placeholder="Enter avatar image URL"
+                        {...field}
+                        className="h-10 px-3 py-2"
+                      />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      A URL to your character's avatar image.
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Provide a URL for your character's avatar image
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -142,18 +148,18 @@ export function CreateCharacterButton() {
                 name="story"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Backstory</FormLabel>
+                    <FormLabel className="text-sm font-medium">Backstory</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Your character's background story"
-                        className="resize-none h-24"
+                        className="min-h-[120px] resize-none px-3 py-2"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      The detailed background story of your character.
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Create a rich backstory to give your character depth
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -162,30 +168,44 @@ export function CreateCharacterButton() {
                 name="personality"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Personality</FormLabel>
+                    <FormLabel className="text-sm font-medium">Personality</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Describe your character's personality traits"
-                        className="resize-none h-24"
+                        className="min-h-[120px] resize-none px-3 py-2"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription className="text-xs">
-                      Describe how your character thinks, behaves, and interacts.
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Define how your character thinks and behaves
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
             </form>
           </Form>
         </ScrollArea>
-        <div className="flex justify-end gap-4 px-6 py-4 border-t">
-          <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t bg-card">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setOpen(false)}
+            className="bg-background"
+          >
             Cancel
           </Button>
-          <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
-            {form.formState.isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Character"}
+          <Button
+            type="submit"
+            onClick={form.handleSubmit(onSubmit)}
+            className="bg-primary/90 hover:bg-primary text-primary-foreground"
+          >
+            {form.formState.isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <Plus className="w-4 h-4 mr-2" />
+            )}
+            Create Character
           </Button>
         </div>
       </DialogContent>
