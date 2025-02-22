@@ -10,13 +10,13 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "400", "500", "600", "700"],
   variable: "--font-poppins",
-  display: "swap", 
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "holo.ai | Personalized AI Chat & Solutions for Every Need",
+  title: "holo.ai | Chat with your favorite characters at your fingertips",
   description:
-    "Discover holo.ai, the ultimate platform for personalized AI chat and solutions tailored to your needs. Experience cutting-edge AI technology today!",
+    "Discover holo.ai, A platform that allows you to chat with your favorite characters at your fingertips and create your own characters.",
   keywords: [
     "personalized AI",
     "AI chat platform",
@@ -25,17 +25,17 @@ export const metadata: Metadata = {
     "artificial intelligence",
     "custom AI",
     "AI for everyone",
-  ], 
-  authors: [{ name: "Deepanshu Mishra", url: "https://deepanshumishra.me" }], 
-  viewport: "width=device-width, initial-scale=1", 
-  robots: "index, follow", 
+  ],
+  authors: [{ name: "Deepanshu Mishra", url: "https://deepanshumishra.me" }],
+  viewport: "width=device-width, initial-scale=1",
+  robots: "index, follow",
   alternates: {
-    canonical: "https://holo.deepanshumishra.me", 
+    canonical: "https://holo.deepanshumishra.me",
   },
   openGraph: {
-    title: "holo.ai | Personalized AI Chat & Solutions for Every Need",
+    title: "holo.ai | Chat with your favorite characters at your fingertips",
     description:
-      "holo.ai offers personalized AI chat and solutions designed for your unique needs. Explore the future of AI technology now!",
+      "holo.ai offers personalized AI chat and create your own characters",
     url: "https://holo.deepanshumishra.me",
     siteName: "holo.ai",
     images: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
         url: "https://holo.deepanshumishra.me/og.png",
         width: 1200,
         height: 630,
-        alt: "holo.ai - Personalized AI Platform",
+        alt: "holo.ai - Chat with your favorite characters at your fingertips",
       },
     ],
     locale: "en_US",
@@ -51,11 +51,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "holo.ai | Personalized AI Chat & Solutions",
+      title: "holo.ai | Chat with your favorite characters at your fingertips",
     description:
-      "Join holo.ai for personalized AI chat and innovative solutions tailored just for you!",
+      "Join holo.ai for personalized AI chat and create your own characters",
     images: ["https://holo.deepanshumishra.me/og.png"],
-    creator: "@DeepanshuDipxsy", 
+    creator: "@DeepanshuDipxsy",
   },
 };
 
@@ -70,7 +70,7 @@ const structuredData = {
     target: "https://holo.deepanshumishra.me/search?q={search_term_string}",
     "query-input": "required name=search_term_string",
   },
-  description: "A platform offering personalized AI chat and solutions for every need.",
+  description: "A platform offering personalized AI chat and create your own characters.",
 };
 
 export default function RootLayout({
