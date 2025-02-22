@@ -57,9 +57,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card-background mt-20">
       <div className="container max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8 fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-8 fade-in">
           <div>
-            <h1 className="text-3xl font-medium tracking-tight">Characters</h1>
+            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight">Characters</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Create and manage your AI companions
             </p>
