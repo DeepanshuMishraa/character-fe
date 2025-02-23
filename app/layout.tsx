@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     "artificial intelligence",
     "custom AI",
     "AI for everyone",
+    "carter.chat",
+    "character.ai"
   ],
   authors: [{ name: "Deepanshu Mishra", url: "https://deepanshumishra.me" }],
   viewport: "width=device-width, initial-scale=1",
