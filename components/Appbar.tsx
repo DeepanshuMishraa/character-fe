@@ -130,59 +130,55 @@ const Appbar = () => {
       <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-4 sm:gap-10">
           <Link href="/" className="text-xl font-normal text-foreground">holo.ai</Link>
-          <div className="hidden sm:flex items-center space-x-4">
-
-          </div>
+          <div className="hidden sm:flex items-center space-x-4" />
         </div>
 
         <div className="flex items-center gap-4">
-          <div ref={searchRef} className="relative hidden sm:flex items-center">
+          {pathName === "/dashboard" && (
+            <div ref={searchRef} className="relative hidden sm:flex items-center">
+              <div className="absolute left-3">
+                <Search className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onFocus={() => setShowResults(true)}
+                placeholder="Search characters..."
+                className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-accent/50 border-border pl-10 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
+              />
 
-
-            {pathName == "/dashboard" && (
-              <>
-                <div className="absolute left-3">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onFocus={() => setShowResults(true)}
-                  placeholder="Search characters..."
-                  className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-accent/50 border-border pl-10 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
-                />
-              </>
-            )}
-
-            <AnimatePresence>
-              {showResults && searchResults.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-popover/95 backdrop-blur-lg rounded-lg border border-border overflow-hidden shadow-lg"
-                >
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.id}
-                      onClick={() => handleResultClick(result.id)}
-                      className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={result.avatar} />
-                        <AvatarFallback>{result.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{result.name}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{result.description}</p>
+              <AnimatePresence>
+                {showResults && searchResults.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-popover/95 backdrop-blur-lg rounded-lg border border-border overflow-hidden shadow-lg"
+                  >
+                    {searchResults.map((result) => (
+                      <div
+                        key={result.id}
+                        onClick={() => handleResultClick(result.id)}
+                        className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer transition-colors"
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={result.avatar} />
+                          <AvatarFallback>{result.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{result.name}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{result.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <ModeToggle />
-          </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          <ModeToggle />
+
           {!session && (
             <Button
               onClick={async () => {
@@ -194,7 +190,9 @@ const Appbar = () => {
               Login
             </Button>
           )}
+
           {renderAuthButtons()}
+
           <Button
             variant="ghost"
             size="icon"
@@ -241,7 +239,7 @@ const Appbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div >
+    </div>
   );
 };
 
