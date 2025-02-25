@@ -1,27 +1,45 @@
 "use client"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import { motion } from "framer-motion"
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme()
 
   return (
-    <button
+    <motion.button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative inline-flex h-12 w-24 items-center justify-center overflow-hidden rounded-full bg-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-gray-800"
+      className="relative rounded-md p-2 hover:bg-accent transition-colors duration-200"
+      aria-label="Toggle theme"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
-      <div
-        className={`absolute inset-0 flex w-full items-center justify-between px-2 transition-transform duration-500 ${theme === "dark" ? "translate-x-0" : "-translate-x-1/2"
-          }`}
-      >
-        <Sun className="h-8 w-8 text-yellow-500 transition-all duration-500 dark:text-gray-400" />
-        <Moon className="h-8 w-8 text-gray-400 transition-all duration-500 dark:text-blue-300" />
+      <div className="relative h-5 w-5">
+        <motion.div
+          initial={false}
+          animate={{
+            scale: theme === "dark" ? 0 : 1,
+            opacity: theme === "dark" ? 0 : 1
+          }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="absolute inset-0"
+        >
+          <Sun className="h-5 w-5" />
+        </motion.div>
+
+        <motion.div
+          initial={false}
+          animate={{
+            scale: theme === "dark" ? 1 : 0,
+            opacity: theme === "dark" ? 1 : 0
+          }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="absolute inset-0"
+        >
+          <Moon className="h-5 w-5" />
+        </motion.div>
       </div>
-      <div
-        className={`absolute h-10 w-10 transform rounded-full bg-white shadow-lg transition-all duration-500 ${theme === "dark" ? "translate-x-[2.75rem]" : "-translate-x-[2.75rem]"
-          }`}
-      />
-    </button>
+    </motion.button>
   )
 }
 

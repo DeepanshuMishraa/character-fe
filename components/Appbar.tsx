@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { CreateCharacterButton } from "./create-character-button"
 import { usePathname, useRouter } from "next/navigation"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { ModeToggle } from "./mode-toggle"
 
 interface SearchResult {
   id: string;
@@ -36,6 +37,7 @@ const Appbar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const debouncedSearch = useDebounce(search, 300);
+  const pathName = usePathname();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -125,63 +127,68 @@ const Appbar = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
-      <div className="flex items-center justify-between p-4 bg-transparent backdrop-blur-sm">
+      <div className="flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-4 sm:gap-10">
-          <Link href="/" className="text-xl font-normal text-white">holo.ai</Link>
+          <Link href="/" className="text-xl font-normal text-foreground">holo.ai</Link>
           <div className="hidden sm:flex items-center space-x-4">
-            {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
 
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div ref={searchRef} className="relative hidden sm:flex items-center">
-            <div className="absolute left-3">
-              <Search className="w-4 h-4 text-white/60" />
-            </div>
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => setShowResults(true)}
-              placeholder="Search characters..."
-              className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
-            />
 
-            {/* Search Results Dropdown */}
+
+            {pathName == "/dashboard" && (
+              <>
+                <div className="absolute left-3">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onFocus={() => setShowResults(true)}
+                  placeholder="Search characters..."
+                  className="w-[200px] md:w-[300px] lg:w-[400px] rounded-full bg-accent/50 border-border pl-10 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
+                />
+              </>
+            )}
+
             <AnimatePresence>
               {showResults && searchResults.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-black/90 backdrop-blur-lg rounded-lg border border-white/10 overflow-hidden shadow-xl"
+                  className="absolute top-full left-0 right-0 mt-2 bg-popover/95 backdrop-blur-lg rounded-lg border border-border overflow-hidden shadow-lg"
                 >
                   {searchResults.map((result) => (
                     <div
                       key={result.id}
                       onClick={() => handleResultClick(result.id)}
-                      className="flex items-center gap-3 p-3 hover:bg-white/10 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer transition-colors"
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={result.avatar} />
                         <AvatarFallback>{result.name[0]}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium text-white">{result.name}</p>
-                        <p className="text-xs text-white/60 line-clamp-1">{result.description}</p>
+                        <p className="text-sm font-medium text-foreground">{result.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{result.description}</p>
                       </div>
                     </div>
                   ))}
                 </motion.div>
               )}
             </AnimatePresence>
+            <ModeToggle />
           </div>
           {!session && (
             <Button
               onClick={async () => {
                 router.push("/login");
               }}
-              className="rounded-full font-normal bg-transparent text-white border-white/20 hover:bg-white/10"
+              className="rounded-full font-normal bg-transparent text-foreground border-border hover:bg-accent"
               variant="outline"
             >
               Login
@@ -191,13 +198,13 @@ const Appbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="sm:hidden relative z-50 hover:bg-white/10"
+            className="sm:hidden relative z-50 hover:bg-accent"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
-              <X className="w-5 h-5 text-white" />
+              <X className="w-5 h-5 text-foreground" />
             ) : (
-              <Menu className="w-5 h-5 text-white" />
+              <Menu className="w-5 h-5 text-foreground" />
             )}
           </Button>
         </div>
@@ -210,27 +217,31 @@ const Appbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="sm:hidden fixed inset-0 top-[72px] bg-[#111111] z-50"
+            className="sm:hidden fixed inset-0 top-[72px] bg-background z-50"
           >
             <div className="relative h-full p-6 space-y-6 overflow-auto">
               <div className="relative flex items-center">
                 <div className="absolute left-3">
-                  <Search className="w-4 h-4 text-white/60" />
+                  <Search className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <Input
                   placeholder="Search"
-                  className="w-full rounded-full bg-white/10 border-none pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/60"
+                  className="w-full rounded-full bg-accent/50 border-border pl-10 focus-visible:ring-ring text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="space-y-4">
-                {session?.user && <Link href="/dashboard" className="">Dashboard</Link>}
+                {session?.user && (
+                  <Link href="/dashboard" className="text-foreground/80 hover:text-foreground transition-colors">
+                    Dashboard
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 
