@@ -5,6 +5,8 @@ import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/app/_providers/provider";
 import { PostHogProvider } from "./_providers/posthog-provider";
 import { QueryProvider } from "./_providers/query-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-      title: "holo.ai | Chat with your favorite characters at your fingertips",
+    title: "holo.ai | Chat with your favorite characters at your fingertips",
     description:
       "Join holo.ai for personalized AI chat and create your own characters",
     images: ["https://holo.deepanshumishra.me/og.png"],
@@ -106,6 +108,8 @@ export default function RootLayout({
             <Appbar />
             <PostHogProvider>
               {children}
+    
+              <SonnerToaster />
             </PostHogProvider>
           </QueryProvider>
         </ThemeProvider>

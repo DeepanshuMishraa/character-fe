@@ -1,10 +1,50 @@
+'use client'
+
 import Image from "next/image"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useState } from "react"
+import axios from "axios"
+import { toast } from "sonner"
 
 const Hero = () => {
+  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      toast.error("Please enter a valid email")
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/send-email`,
+        { email: trimmedEmail }  
+      )
+
+      if (response.status !== 200) {
+        throw new Error("Failed to send email")
+      }
+
+      setIsLoading(false)
+      setEmail("")
+      toast.success("You've been added to the waitlist! Check your email for confirmation.")
+    } catch (error) {
+      console.error(error)
+      setIsLoading(false)
+      toast.error("Failed to join waitlist. Please try again.")
+    }
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 z-0" />
@@ -27,20 +67,23 @@ const Hero = () => {
             source AI chat app that puts your creativity and imagination first.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto">
             <Input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="h-12 px-4 rounded-full bg-background/50 border-border"
+              required
             />
-            <Link href="/login">
-              <Button
-                className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Join waitlist
-              </Button>
-            </Link>
-          </div>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {isLoading ? "Joining..." : "Join waitlist"}
+            </Button>
+          </form>
         </motion.div>
 
 
@@ -69,7 +112,7 @@ const Hero = () => {
         </motion.div>
       </div>
 
-  
+
       <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
         <div
           className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary to-secondary opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
